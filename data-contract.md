@@ -1,7 +1,7 @@
 # DATA_CONTRACT.md
 
 ## 1. Purpose
-This document defines the application's data models, relationships, business rules, storage strategy, and service contracts.
+This document defines the application's data models, relationships, business rules, storage strategy, and service contracts. Authentication is a demo feature; it does not provide account-level isolation for local content.
 
 All modules must follow these definitions.
 
@@ -35,9 +35,17 @@ Allowed type values:
 - epub
 - txt
 - markdown
-- mobi
-- azw
+- image
+- docx
+- spreadsheet
+- video
 - url
+
+Type mapping:
+- `.md` and `.markdown` use `markdown`.
+- `.jpg`, `.jpeg`, `.png`, `.webp`, and `.svg` use `image`.
+- `.xlsx`, `.xls`, and `.csv` use `spreadsheet`.
+- `.mp4` and `.webm` use `video`.
 
 Allowed sourceType values:
 - file
@@ -111,6 +119,8 @@ Fields:
 Rules:
 - A note may exist independently of documents.
 - A note may be linked to multiple documents.
+- Multiple notes may be linked to the same document.
+- Independent notes may appear alongside documents in the Library UI, but remain separate `Note` entities and are not included in document counts.
 - documentIds must reference existing documents.
 - Deleting a document removes its reference from documentIds.
 - Deleting a document must not automatically delete an associated note.
@@ -191,10 +201,65 @@ Allowed defaultView values:
 - list
 
 Rules:
-- itemsPerPage must be a positive integer.
+- itemsPerPage must be 10, 20, 50, or -1, where -1 means all items.
 - Default theme is system.
 - Default view is grid.
-- Default itemsPerPage is 12.
+- Default itemsPerPage is 10.
+
+### 2.9 KnowledgeLink
+Represents a confirmed relationship between two knowledge entities.
+
+Fields:
+- id: string
+- sourceType: string
+- sourceId: string
+- targetType: string
+- targetId: string
+- relationType: string
+- createdAt: string
+
+Allowed entity types:
+- document
+- note
+- tag
+
+Allowed relation types:
+- backlink
+- ai_suggestion_accepted
+
+Rules:
+- A link must reference existing source and target entities.
+- A link cannot point from an entity to itself.
+- AI-proposed relationships are not KnowledgeLinks until the user accepts them.
+- Tag-based associations and note-document associations may be derived from their existing data relationships when rendering the graph; do not create duplicate KnowledgeLinks for them.
+- Removing an entity removes KnowledgeLinks that reference it.
+
+### 2.10 KnowledgeLinkSuggestion
+Represents an AI-proposed relationship awaiting or recording the user's decision.
+
+Fields:
+- id: string
+- sourceType: string
+- sourceId: string
+- targetType: string
+- targetId: string
+- rationale: string
+- status: string
+- createdAt: string
+- updatedAt: string
+
+Allowed status values:
+- pending
+- accepted
+- rejected
+
+Rules:
+- A suggestion must reference existing source and target entities.
+- A suggestion cannot point from an entity to itself.
+- AI suggestions must be displayed separately from confirmed graph links.
+- A pending suggestion becomes a confirmed graph relationship only after explicit user acceptance; acceptance creates the corresponding KnowledgeLink.
+- Rejecting a suggestion must not create a KnowledgeLink.
+- Removing an entity removes suggestions that reference it.
 
 ## 3. Relationships
 
@@ -205,8 +270,9 @@ Rules:
 - Note and Document have a many-to-many relationship.
 - Highlight belongs to one Document and one Note.
 - ReadingProgress belongs to one Document.
+- KnowledgeLink and KnowledgeLinkSuggestion connect supported knowledge entities.
 - ChatMessage is independent of document data.
-- AppSettings stores application preferences.
+- AppSettings stores application preferences in localStorage.
 
 ## 4. File Handling Rules
 
@@ -216,8 +282,17 @@ Supported extensions:
 - .txt
 - .md
 - .markdown
-- .mobi
-- .azw
+- .jpg
+- .jpeg
+- .png
+- .webp
+- .svg
+- .docx
+- .xlsx
+- .xls
+- .csv
+- .mp4
+- .webm
 
 Maximum upload size: 10 MB per file.
 
@@ -226,9 +301,10 @@ Rules:
 - Use IndexedDB to store uploaded file data.
 - Use storageKey to associate a document with its stored file.
 - Handle unsupported file formats with a clear error message.
+- Map image formats to `image`, spreadsheet formats to `spreadsheet`, and video formats to `video`; keep the actual extension and MIME type in the file metadata.
 - File metadata extraction must not be assumed to work for every format.
 - URL metadata retrieval may fail because of browser CORS restrictions.
-- PDF and EPUB annotation behavior must be validated against the chosen reading implementation.
+- Preview support is format-specific; an accepted upload may still use the unsupported-preview state where no renderer is available.
 
 ## 5. Storage Strategy
 
@@ -237,6 +313,7 @@ Use for small, non-binary data such as:
 - Theme preferences
 - Default view
 - Pagination preferences
+- The current demo login session
 - Other small application settings
 
 ### IndexedDB
@@ -247,6 +324,7 @@ Use for:
 - Notes
 - Highlights
 - Reading progress
+- Confirmed knowledge links and AI link suggestions
 - Uploaded file data
 - Other structured application data that requires reliable browser storage
 
@@ -255,6 +333,7 @@ Rules:
 - Handle unavailable or full browser storage.
 - Do not assume local browser data automatically synchronizes across devices.
 - Do not claim that local data is backed up unless a backup mechanism exists.
+- Local content is shared within the browser's IndexedDB and is not partitioned or protected by the demo login. Logging out does not delete or isolate it.
 
 ## 6. Deletion and Trash Rules
 
@@ -355,6 +434,13 @@ SettingsService:
 - getSettings()
 - updateSettings(data)
 
+KnowledgeGraphService:
+- getGraph(filters)
+- listLinkSuggestions(filters)
+- acceptLinkSuggestion(id)
+- rejectLinkSuggestion(id)
+- deleteKnowledgeLink(id)
+
 The exact implementation may vary, but service behavior and data rules must remain consistent.
 
 ## 9. Error Handling
@@ -375,12 +461,10 @@ Error messages must explain the problem and, where possible, how to resolve it.
 ## 10. Explicitly Excluded Features
 
 Unless separately approved, do not implement:
-- User accounts or authentication
+- Account-level isolation, access control, or synchronization of locally stored content
 - Cloud synchronization
-- External AI API integration
-- Automatic AI summaries
 - Semantic search
-- Automatic knowledge graph generation
+- Automatic confirmation or creation of graph links from AI suggestions without user approval
 - Bulk document operations
 - Duplicate document detection
 - Version history
