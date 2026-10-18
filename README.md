@@ -21,7 +21,7 @@ Các tính năng dự kiến dùng Google Apps Script hoặc API AI cần endpoi
 - [Architecture](./architecture.md): màn hình, luồng và quyết định kỹ thuật.
 - [Data contract](./data-contract.md): mô hình dữ liệu, lưu trữ và quy tắc nghiệp vụ.
 - [Product backlog](./product-backlog.md): ưu tiên, phân công và kế hoạch.
-- [Prompt kế hoạch 7 ngày](./prompt-ke-hoach-7-ngay.md): prompt theo vai trò và hướng dẫn Git cho ba lần bàn giao trên hai máy.
+- [Prompt kế hoạch 7 ngày](./prompt-ke-hoach-7-ngay.md): prompt theo tác vụ và hướng dẫn tạo/review bốn PR tuần tự trên hai máy; PR cuối do nhóm trưởng Phan Thị Ngọc Duyên (N.Duyên) phụ trách chốt ứng dụng.
 - [AI instructions](./AI_INSTRUCTIONS.md): điểm vào hướng dẫn trợ lý AI.
 - [AI agent guidelines](./.ai/AGENTS.md): quy tắc làm việc trong dự án.
 - [AI workflows](./.ai/SKILLS.md): quy trình tính năng, dữ liệu và kiểm thử.

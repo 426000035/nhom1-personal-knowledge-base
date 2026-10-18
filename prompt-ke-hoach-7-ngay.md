@@ -1,216 +1,322 @@
-# Prompt làm việc trên hai máy — 7 ngày, đúng 3 commit
+# Prompt theo tác vụ — 7 ngày, 4 Pull Request
 
-Lịch bàn giao tuần tự giữa hai máy:
+Lịch làm tuần tự trên hai máy. Mỗi PR có prompt riêng cho từng tác vụ; các lệnh Git được tách thành checklist riêng, không gộp vào prompt giao việc.
 
-1. **Chặng 1, Ngày 1–2: A làm → A commit/push → B lấy về.**
-2. **Chặng 2, Ngày 3–5: B làm trên nhánh mới → B commit/push → A lấy về.**
-3. **Chặng 3, Ngày 5–7: A làm trên nhánh mới → A commit/push → B nghiệm thu.**
+| PR | Ngày | Người thực hiện | Người review | Mục tiêu |
+|---|---|---|---|---|
+| PR 1 | 1–2 | Tống Ngọc Minh Châu (M.Châu) | Phan Thị Ngọc Duyên (N.Duyên), nhóm trưởng | Chốt phạm vi, app shell, điều hướng và Dashboard khung |
+| PR 2 | 3–4 | Phan Thị Ngọc Duyên (N.Duyên), nhóm trưởng | M.Châu | IndexedDB, CRUD và dịch vụ dữ liệu |
+| PR 3 | 5–6 | M.Châu | N.Duyên | Tích hợp UI Kho/chi tiết/ghi chú/tài khoản/Knowledge Graph |
+| PR 4 | 7 và thời gian chốt | N.Duyên, nhóm trưởng | M.Châu | Rà soát toàn bộ ứng dụng, sửa lỗi và hoàn tất chức năng trong backlog |
 
-Mỗi chặng chỉ có một commit và một lần push. Không phát triển đồng thời trên hai nhánh độc lập, không tạo commit phụ để chuyển code.
+## Quy tắc dùng prompt
 
-## Quy ước Git
+1. Đầu mỗi phiên, dán **Prompt nền**, sau đó dán đúng prompt tác vụ.
+2. Mỗi prompt chỉ giải quyết một tác vụ nhỏ. Xác nhận kết quả rồi mới chuyển prompt tiếp theo.
+3. PR tiếp theo chỉ bắt đầu sau khi PR trước được review và squash-merge vào nhánh chính.
+4. Nếu reviewer yêu cầu sửa, cập nhật trên đúng nhánh và PR đang mở; không tạo PR thay thế.
+5. Tạo đúng 4 PR. Mỗi PR dùng **Squash and merge**, tương ứng một commit tích hợp trên nhánh chính.
 
-- Thay `<main-branch>` bằng tên nhánh chính thực tế của repository, ví dụ `main` hoặc `master`.
-- Các nhánh bàn giao nối tiếp nhau:
-  - `work/pkb-01-foundation`
-  - `work/pkb-02-data`, bắt đầu từ nhánh chặng 1
-  - `work/pkb-03-integration`, bắt đầu từ nhánh chặng 2
-- Prompt làm việc bên dưới chỉ yêu cầu AI thực hiện phần kỹ thuật. **Các lệnh Git nằm ở mục riêng**, không cần dán lệnh Git vào prompt công việc.
-- Người nhận chỉ bắt đầu làm sau khi đã fetch nhánh, xác minh SHA và xác nhận với người gửi.
-- Các lệnh `git add -A` bên dưới chỉ an toàn khi working tree sạch lúc bắt đầu chặng và mọi thay đổi hiện tại đều do người phụ trách chặng tạo. Nếu `git status` cho thấy thay đổi khác, không chạy `git add -A`; dừng và xác định phạm vi trước.
-- Nhánh chặng 3 chứa đủ ba commit và là nhánh bàn giao cuối. Không tạo merge commit hoặc push lần thứ tư để cập nhật nhánh chính. Nếu cần tích hợp nhánh chính, dùng PR/fast-forward theo chính sách repository mà không tạo commit mới.
-- Không force-push. Nếu working tree không sạch, dừng và xử lý thay đổi hiện có an toàn trước khi chạy lệnh chuyển nhánh.
-
-## Prompt nền — dán trước prompt công việc mỗi phiên
+## Prompt nền — dùng đầu mỗi phiên
 
 ```text
-Bạn đang hỗ trợ dự án Personal Knowledge Base. Trước khi làm việc, đọc .ai/AGENTS.md, .ai/SKILLS.md và các phần liên quan trong architecture.md, data-contract.md, user-stories.md, product-backlog.md.
+Bạn đang hỗ trợ dự án Personal Knowledge Base. Trước khi làm tác vụ, đọc .ai/AGENTS.md, .ai/SKILLS.md và phần liên quan trong architecture.md, data-contract.md, user-stories.md, product-backlog.md.
 
-Kiểm tra cấu trúc mã nguồn thực tế; không giả định tính năng đã tồn tại chỉ vì tài liệu mô tả. Giữ nguyên thay đổi có sẵn. Chỉ thực hiện phạm vi và vai trò được giao trong prompt công việc tiếp theo.
+Kiểm tra mã nguồn và trạng thái Git thực tế trước khi sửa. Không coi tính năng trong tài liệu là đã triển khai. Giữ nguyên thay đổi có sẵn. Chỉ thực hiện đúng tác vụ được giao; không tự làm các mục khác trong PR.
 
-Tuân thủ quyết định dự án: HTML/CSS/JavaScript thuần; nội dung và tệp dùng IndexedDB; tùy chọn nhỏ và phiên demo dùng localStorage. Đăng nhập/OTP là demo, dữ liệu IndexedDB không phân vùng theo tài khoản. API AI chỉ gọi qua gateway phía máy chủ, không để lộ khóa. Gợi ý AI chỉ trở thành liên kết chính thức khi người dùng chấp thuận.
+Tuân thủ quyết định hiện tại: HTML/CSS/JavaScript thuần; nội dung/tệp dùng IndexedDB; tùy chọn nhỏ và phiên đăng nhập demo dùng localStorage. Đăng nhập/OTP là demo, dữ liệu IndexedDB không phân vùng theo tài khoản. API AI chỉ đi qua gateway phía máy chủ; không đưa khóa bí mật vào frontend. Gợi ý AI chỉ thành liên kết chính thức khi người dùng chấp thuận.
 
-Nếu tài liệu, mã nguồn hoặc yêu cầu mâu thuẫn, nêu rõ và hỏi trước khi thay đổi kiến trúc, bảo mật hoặc hợp đồng dữ liệu. Sau khi làm, báo tệp đã sửa, kiểm tra đã chạy và phần còn bị chặn. Không tự chạy lệnh commit/push; các thao tác Git do nhóm thực hiện riêng theo checklist của chặng.
+Nếu yêu cầu xung đột với tài liệu hoặc mã, nêu chính xác điểm xung đột và hỏi trước khi thay đổi phạm vi, kiến trúc, bảo mật hoặc hợp đồng dữ liệu. Sau tác vụ, báo tệp đã đổi, kiểm tra đã chạy và việc còn bị chặn. Không tự tạo/merge PR.
 ```
 
-## Chặng 1 — Ngày 1–2: A dựng nền, bàn giao cho B
+## PR 1 — Phạm vi, app shell và Dashboard
 
-**Phân công:** A thực hiện; B review phạm vi và hợp đồng dữ liệu.
+**Lịch:** Ngày 1–2. **Tác giả:** M.Châu. **Reviewer:** N.Duyên (nhóm trưởng).
 
-**Phạm vi:** PB-01, PB-03, PB-05 ở mức khung.
-
-### Prompt công việc cho A
+### Prompt 1.1 — Chốt màn hình và luồng
 
 ```text
-Thực hiện Chặng 1 (Ngày 1–2) với vai trò Thành viên A.
-
-Đọc user-stories.md và architecture.md; phối hợp Thành viên B để thống nhất phạm vi MVP, màn hình, luồng điều hướng và tiêu chí nghiệm thu. Nhờ B review data-contract.md; không tự đổi schema.
-
-Xây dựng app shell, điều hướng, layout responsive và Dashboard khung theo backlog. Có thể dùng trạng thái rỗng hoặc dữ liệu mẫu. Không truy cập IndexedDB trực tiếp, không giả lập dịch vụ dữ liệu đã có và không làm các tính năng thuộc chặng sau.
-
-Kiểm tra kết quả phù hợp với mã hiện có. Bàn giao danh sách màn hình/luồng và các điểm cần B review.
+Đối chiếu user-stories.md với architecture.md. Lập danh sách màn hình MVP, luồng điều hướng và tiêu chí nghiệm thu cho PR 1. Đánh dấu điểm chưa chốt và phụ thuộc dịch vụ/dữ liệu cần N.Duyên xác nhận. Không tự thay đổi phạm vi hoặc schema. Bàn giao danh sách cho N.Duyên review trước khi triển khai UI.
 ```
 
-### Thao tác Git của A — tạo và push commit 1
+### Prompt 1.2 — Dựng app shell và điều hướng
 
-Chạy lần lượt trong terminal tại thư mục repository. Nếu `git status` cho thấy thay đổi không thuộc chặng này hoặc thay đổi chưa rõ nguồn gốc, dừng để kiểm tra trước.
+```text
+Triển khai app shell theo architecture.md: khung trang, khu vực điều hướng, vùng nội dung và đường vào các màn hình MVP. Dùng HTML/CSS/JavaScript thuần theo cấu trúc mã đang có. Không thêm framework, thư viện, build step hoặc lưu trữ mới. Mục chưa triển khai phải được thể hiện là placeholder, không giả vờ chức năng đã tồn tại.
+```
+
+### Prompt 1.3 — Làm layout responsive
+
+```text
+Hoàn thiện responsive cho app shell trên desktop và mobile. Bảo đảm điều hướng dùng được bằng bàn phím, có focus state nhìn thấy được, không tràn ngang và không che khuất nội dung. Chỉ sửa CSS liên quan trực tiếp đến khung ứng dụng.
+```
+
+### Prompt 1.4 — Dựng Dashboard
+
+```text
+Tạo giao diện Dashboard gồm tài liệu mới thêm, vừa mới xem, thống kê và truy cập nhanh theo architecture.md. Nếu chưa có service dữ liệu, dùng trạng thái rỗng hoặc dữ liệu mẫu được nhận diện rõ là mẫu; không truy cập IndexedDB trực tiếp và không tuyên bố dữ liệu thật đã được kết nối. Thống kê tách số tài liệu và ghi chú.
+```
+
+### Prompt 1.5 — Review phạm vi PR 1
+
+```text
+Rà soát riêng app shell, điều hướng, responsive và Dashboard của PR 1. Xác minh link/đường điều hướng, trạng thái rỗng, lỗi console nếu có công cụ và diff không chứa phần ngoài phạm vi. Báo kết quả và giới hạn; không thực hiện thao tác Git.
+```
+
+### Thao tác Git và PR 1
+
+**M.Châu tạo nhánh mới từ nhánh chính cập nhật:**
 
 ```powershell
 git status
 git fetch origin
 git switch <main-branch>
 git pull --ff-only origin <main-branch>
-git switch -c work/pkb-01-foundation
+git switch -c feature/pkb-pr1-foundation
 ```
 
-Sau khi hoàn thành công việc và B đã review:
+Sau khi N.Duyên review tác vụ:
 
 ```powershell
-git status
 git diff
 git diff --check
-git add -A
+git add <các-tệp-thuộc-PR1>
 git diff --cached
 git commit -m "feat: add app foundation and dashboard"
-git push -u origin work/pkb-01-foundation
-git rev-parse HEAD
+git push -u origin feature/pkb-pr1-foundation
 ```
 
-A gửi B tên nhánh, SHA từ `git rev-parse HEAD`, nội dung/tệp đã bàn giao và kết quả kiểm tra. Đây là **commit 1 / push 1**.
+Tạo PR vào `<main-branch>`:
 
-### Thao tác Git của B — nhận commit 1, tạo nhánh chặng 2
+- Title: `PR 1: App foundation and dashboard`
+- Reviewer: N.Duyên.
+- Mô tả: phạm vi, các tác vụ hoàn thành, kiểm tra và giới hạn.
+- N.Duyên review; sau khi đạt, chọn **Squash and merge**. M.Châu cập nhật nhánh chính sau merge trước khi làm PR 3.
 
-B chỉ chạy sau khi working tree sạch hoặc các thay đổi cục bộ đã được xử lý an toàn:
+## PR 2 — IndexedDB và dịch vụ dữ liệu
+
+**Lịch:** Ngày 3–4. **Tác giả:** N.Duyên (nhóm trưởng). **Reviewer:** M.Châu.
+
+### Prompt 2.1 — Thiết kế IndexedDB
+
+```text
+Đọc data-contract.md, xác định object stores, key/index cần thiết và cách khởi tạo/versioning IndexedDB. Đối chiếu schema với các entity/quan hệ hiện có. Không tự đổi tên trường hoặc quy tắc nghiệp vụ. Trình bày ngắn thiết kế và các rủi ro migration để M.Châu review trước khi triển khai.
+```
+
+### Prompt 2.2 — Khởi tạo database và lớp truy cập
+
+```text
+Triển khai mở/khởi tạo IndexedDB và lớp truy cập dùng chung theo thiết kế đã review. Xử lý lỗi open/upgrade/transaction rõ ràng; không báo sẵn sàng nếu khởi tạo thất bại. Không để component giao diện tự thao tác IndexedDB.
+```
+
+### Prompt 2.3 — CRUD tài liệu và URL
+
+```text
+Triển khai DocumentService theo data-contract.md: create, get by ID, list, update, soft delete, restore và permanent delete nếu nằm trong phạm vi. Validate title, type, sourceUrl, storageKey, folderId/tagIds và tham chiếu. Chỉ trả thành công sau khi transaction hoàn tất; trả lỗi rõ ràng khi dữ liệu sai hoặc lưu thất bại.
+```
+
+### Prompt 2.4 — FolderService và TagService
+
+```text
+Triển khai dịch vụ thư mục và tag theo hợp đồng dữ liệu. Kiểm tra tên rỗng/trùng, vòng lặp thư mục và tham chiếu entity. Không xóa thư mục còn tài liệu/thư mục con hoặc tag còn được dùng; trả thông báo hướng dẫn xử lý thay vì xóa âm thầm.
+```
+
+### Prompt 2.5 — Note, Highlight và trạng thái đọc
+
+```text
+Triển khai dịch vụ Note, Highlight, ReadingProgress, yêu thích và trạng thái đọc theo data-contract.md. Hỗ trợ ghi chú độc lập và nhiều ghi chú trên cùng tài liệu; không trộn nội dung ghi chú với file gốc. Khi cập nhật/xóa entity, duy trì tham chiếu đúng theo quy tắc.
+```
+
+### Prompt 2.6 — Lọc dữ liệu và tích hợp ngoài nếu sẵn sàng
+
+```text
+Triển khai helper/service lọc và sắp xếp có thể kết hợp tìm kiếm với bộ lọc. Tùy chọn nhỏ lưu ở localStorage, gồm Card/List và số mục 10/20/50/all, mặc định 10. Chỉ tích hợp Google Apps Script hoặc AI gateway nếu endpoint và hợp đồng request/response được cung cấp; nếu thiếu, ghi rõ bị chặn. Không đưa khóa bí mật vào frontend, không giả lập thành công.
+```
+
+### Prompt 2.7 — Kiểm thử hợp đồng dịch vụ
+
+```text
+Kiểm thử IndexedDB/service: CRUD, dữ liệu sai, tham chiếu không tồn tại, lỗi transaction/storage, đọc lại sau reload và quy tắc xóa/khôi phục. Viết hoặc cập nhật mô tả API service gồm tên hàm, input, output và lỗi để M.Châu tích hợp. Báo ca kiểm thử đã chạy và kết quả; không thực hiện thao tác Git.
+```
+
+### Thao tác Git và PR 2
+
+Chỉ sau khi PR 1 đã squash-merge. **N.Duyên tạo nhánh mới:**
 
 ```powershell
 git status
 git fetch origin
-git switch -c work/pkb-02-data origin/work/pkb-01-foundation
-git rev-parse HEAD
-git log -1 --oneline
+git switch <main-branch>
+git pull --ff-only origin <main-branch>
+git switch -c feature/pkb-pr2-data
 ```
 
-B đối chiếu SHA với thông tin A gửi, kiểm tra cấu trúc/ứng dụng rồi xác nhận đã nhận đúng nhánh. **Chưa commit hoặc push** ở bước nhận bàn giao.
-
-## Chặng 2 — Ngày 3–5: B làm dữ liệu/dịch vụ, bàn giao cho A
-
-**Phân công:** B thực hiện; A review hợp đồng dịch vụ và kiểm tra diff.
-
-**Phạm vi:** PB-02, PB-04, PB-07, PB-09, PB-10; dịch vụ PB-11/PB-12/PB-13 nếu endpoint/gateway sẵn sàng.
-
-### Prompt công việc cho B
-
-```text
-Thực hiện Chặng 2 (Ngày 3–5) với vai trò Thành viên B trên nhánh work/pkb-02-data đã được tạo từ commit bàn giao của A.
-
-Triển khai IndexedDB và dịch vụ theo data-contract.md: CRUD tài liệu/URL/tag/thư mục; ghi chú độc lập và ghi chú liên kết tài liệu; highlight; tiến độ đọc; yêu thích; các thao tác dữ liệu cần thiết cho UI. UI không được truy cập IndexedDB trực tiếp.
-
-Kiểm tra validation, tham chiếu entity, lỗi transaction, quy tắc xóa/khôi phục và khả năng đọc lại sau tải trang. Chuẩn bị hợp đồng dịch vụ dễ tích hợp, gồm tên hàm, tham số, kết quả, lỗi và ví dụ dữ liệu; gửi A review trước khi chốt.
-
-Chỉ tích hợp Google Apps Script/Sheets hoặc AI gateway nếu endpoint và hợp đồng đã được cung cấp. Nếu thiếu, ghi rõ phần bị chặn; không giả lập thành công và không đưa khóa vào frontend. Báo kết quả, kiểm tra đã chạy và giới hạn còn lại.
-```
-
-### Thao tác Git của B — kiểm tra, commit và push commit 2
-
-Trước khi sửa, B xác nhận đang ở nhánh mới từ commit 1:
+Sau khi M.Châu review dịch vụ:
 
 ```powershell
-git status
-git branch --show-current
-git log -1 --oneline
-```
-
-Sau khi hoàn tất và A đã review:
-
-```powershell
-git status
 git diff
 git diff --check
-git add -A
+git add <các-tệp-IndexedDB-và-service-thuộc-PR2>
 git diff --cached
 git commit -m "feat: add data services and persistence"
-git push -u origin work/pkb-02-data
-git rev-parse HEAD
+git push -u origin feature/pkb-pr2-data
 ```
 
-B gửi A tên nhánh, SHA, nội dung/tệp và kết quả kiểm tra. Đây là **commit 2 / push 2**.
+Tạo PR:
 
-### Thao tác Git của A — nhận commit 2, tạo nhánh chặng 3
+- Title: `PR 2: IndexedDB and data services`
+- Reviewer: M.Châu.
+- Mô tả: schema/store, API service, kiểm thử, rủi ro migration và tích hợp ngoài bị chặn.
+- M.Châu review; sau khi đạt, chọn **Squash and merge**. N.Duyên và M.Châu cập nhật nhánh chính trước PR 3.
 
-A chỉ chạy sau khi B thông báo push thành công:
+## PR 3 — Tích hợp giao diện và luồng MVP
 
-```powershell
-git status
-git fetch origin
-git switch -c work/pkb-03-integration origin/work/pkb-02-data
-git rev-parse HEAD
-git log --oneline -3
-```
+**Lịch:** Ngày 5–6. **Tác giả:** M.Châu. **Reviewer:** N.Duyên (nhóm trưởng).
 
-A xác nhận SHA cuối đúng với SHA B gửi và lịch sử có commit chặng 1, chặng 2; chạy smoke test dịch vụ và xác nhận đã nhận trước khi tích hợp UI.
-
-## Chặng 3 — Ngày 5–7: A tích hợp, bàn giao cho B nghiệm thu
-
-**Phân công:** A thực hiện; B review và nghiệm thu trên máy riêng.
-
-**Phạm vi:** PB-06, PB-08, phần UI PB-09–PB-13 và PB-14.
-
-### Prompt công việc cho A
+### Prompt 3.1 — Tích hợp Dashboard với dữ liệu thật
 
 ```text
-Thực hiện Chặng 3 (Ngày 5–7) trên nhánh work/pkb-03-integration đã tạo từ commit của B.
-
-Tích hợp Dashboard với dịch vụ. Hoàn thiện UI Kho: Card/List, tìm kiếm/gợi ý, lọc, sắp xếp và phân trang 10/20/50/tất cả. Hoàn thiện chi tiết tài liệu, renderer theo định dạng được hỗ trợ, ghi chú/highlight/trạng thái đọc, tùy chọn giao diện, responsive và điều hướng.
-
-Tích hợp giao diện tài khoản demo và Knowledge Graph bằng vis-network. Nêu rõ OTP là demo, IndexedDB không phân vùng theo tài khoản và Auth Guard không phải bảo mật. Gợi ý AI không thành liên kết chính thức nếu người dùng chưa chấp thuận.
-
-Hiển thị trạng thái loading/rỗng/lỗi/thành công chính xác; không báo thành công khi lưu/API thất bại. Cập nhật README/tài liệu demo theo chức năng đã kiểm chứng, ghi rõ endpoint/gateway hoặc tính năng nào còn bị chặn.
-
-Kiểm tra các luồng chính và nhờ B review diff/kết quả. Báo tệp đã sửa, kiểm tra đã chạy, lỗi còn lại và giới hạn.
+Kết nối Dashboard với các service đã merge trong PR 2: tài liệu mới thêm, vừa mới xem, thống kê riêng tài liệu/ghi chú và truy cập nhanh. Không gọi IndexedDB trực tiếp từ UI. Tài liệu trong trash không được tính vào kho hoạt động. Hiển thị loading, empty và lỗi.
 ```
 
-### Thao tác Git của A — review, commit và push commit 3
+### Prompt 3.2 — Kho tài liệu
 
-Chỉ tiếp tục sau khi B đã review và working tree không có thay đổi ngoài phạm vi:
-
-```powershell
-git status
-git branch --show-current
-git diff
-git diff --check
+```text
+Triển khai UI Kho dạng Card/List, tìm kiếm/gợi ý, lọc theo tiêu chí được hỗ trợ, sắp xếp và phân trang 10/20/50/all. Tích hợp qua service. Tìm kiếm, lọc và sắp xếp phải kết hợp chính xác, không tải lại trang. Bổ sung trạng thái loading, không kết quả và lỗi.
 ```
 
-Stage có chọn lọc, review staged diff rồi tạo commit cuối:
+### Prompt 3.3 — Trang chi tiết và renderer
 
-```powershell
-git add -A
-git diff --cached
-git commit -m "feat: complete MVP integration and demo readiness"
-git push -u origin work/pkb-03-integration
-git rev-parse HEAD
-git log --oneline -3
+```text
+Tạo trang chi tiết nhận ID, đọc dữ liệu qua service và hiển thị metadata/tag/trạng thái. Chọn renderer theo định dạng thực sự được hỗ trợ trong data-contract.md. Khi không xem trước được, thông báo rõ và cho tải xuống nếu phù hợp; lỗi preview không được làm hỏng file gốc.
 ```
 
-A gửi B SHA, nhánh, danh sách nội dung/tệp và kết quả kiểm tra. Đây là **commit 3 / push 3 và lần push cuối cùng**. Không push nhánh chính riêng.
+### Prompt 3.4 — UI ghi chú và trạng thái
 
-### Thao tác Git của B — nhận bản cuối và nghiệm thu
+```text
+Tích hợp UI tạo/sửa/xóa ghi chú độc lập và ghi chú gắn với tài liệu, highlight, yêu thích, trạng thái đọc và tiến độ qua service của PR 2. Giữ ghi chú tách biệt khỏi nội dung file. Chỉ hiện thành công sau khi service xác nhận lưu; giữ input để thử lại khi lưu thất bại nếu có thể.
+```
+
+### Prompt 3.5 — Tài khoản demo và Knowledge Graph
+
+```text
+Tích hợp giao diện tài khoản theo endpoint có thật và Knowledge Graph bằng vis-network. Ghi rõ OTP là demo, dữ liệu IndexedDB không phân vùng theo tài khoản và Auth Guard client-side không phải bảo mật. Gợi ý AI phải tách khỏi link đã xác nhận; chỉ chấp nhận mới tạo link. Endpoint/gateway thiếu thì hiển thị giới hạn, không giả lập thành công.
+```
+
+### Prompt 3.6 — Responsive, điều hướng và review PR 3
+
+```text
+Kiểm tra UI Kho, chi tiết, ghi chú, tài khoản và graph trên desktop/mobile; sửa lỗi responsive/điều hướng trong phạm vi PR 3. Chạy smoke test các luồng liên quan, kiểm tra lỗi console và trạng thái loading/rỗng/lỗi. Báo kết quả cho N.Duyên review; không thực hiện thao tác Git.
+```
+
+### Thao tác Git và PR 3
+
+Chỉ sau khi PR 2 đã squash-merge. **M.Châu tạo nhánh mới:**
 
 ```powershell
 git status
 git fetch origin
-git switch -c verify/pkb-final origin/work/pkb-03-integration
-git rev-parse HEAD
-git log --oneline -3
+git switch <main-branch>
+git pull --ff-only origin <main-branch>
+git switch -c feature/pkb-pr3-integration
 ```
 
-B đối chiếu SHA, xác nhận có đúng ba commit của ba chặng và chạy smoke/regression test. Nhánh `verify/pkb-final` chỉ dùng để kiểm tra cục bộ, **không commit/push**. Báo A kết quả nghiệm thu; không tạo commit thứ tư.
+Sau khi N.Duyên review:
 
-## Tóm tắt đúng 3 mốc bàn giao
+```powershell
+git diff
+git diff --check
+git add <các-tệp-UI-và-tích-hợp-thuộc-PR3>
+git diff --cached
+git commit -m "feat: integrate MVP user workflows"
+git push -u origin feature/pkb-pr3-integration
+```
 
-| Mốc | Người làm/push | Nhánh được push | Người nhận và thao tác |
-|---|---|---|---|
-| Cuối Ngày 2 | A — commit 1, push 1 | `work/pkb-01-foundation` | B fetch, tạo `work/pkb-02-data` từ nhánh này |
-| Cuối Ngày 5 | B — commit 2, push 2 | `work/pkb-02-data` | A fetch, tạo `work/pkb-03-integration` từ nhánh này |
-| Cuối Ngày 7 | A — commit 3, push 3 | `work/pkb-03-integration` | B fetch nhánh kiểm tra cục bộ và nghiệm thu |
+Tạo PR:
 
-Không tạo commit/push ngoài ba mốc. Nếu chặng bị trễ, lùi thời điểm bàn giao thay vì tạo commit phụ. Không force-push, không tạo merge commit và không cập nhật nhánh chính bằng push thứ tư.
+- Title: `PR 3: Integrate MVP user workflows`
+- Reviewer: N.Duyên.
+- Mô tả: các tác vụ 3.1–3.6, luồng kiểm tra, ảnh giao diện và phần phụ thuộc còn thiếu.
+- Sau khi duyệt, **Squash and merge**. PR 4 chỉ bắt đầu từ nhánh chính đã cập nhật.
+
+## PR 4 — Chốt ứng dụng, sửa lỗi và hoàn tất chức năng
+
+**Lịch:** Ngày 7 và thời gian chốt theo nghiệm thu. **Tác giả/điều phối:** N.Duyên (nhóm trưởng). **Reviewer UI:** M.Châu.
+
+PR này là vòng hoàn thiện cuối: rà soát toàn bộ chức năng đã duyệt, xử lý lỗi phát hiện ở PR 1–3 và hoàn tất các hạng mục backlog còn thiếu trong phạm vi. Không tự mở rộng phạm vi; yêu cầu mới cần Product Owner duyệt.
+
+### Prompt 4.1 — Lập checklist nghiệm thu từ backlog
+
+```text
+Đóng vai N.Duyên, nhóm trưởng và tác giả PR 4. Đối chiếu toàn bộ acceptance criteria trong user-stories.md, architecture.md, data-contract.md và backlog với code hiện tại sau khi PR 3 đã merge. Lập checklist theo trạng thái: đạt, lỗi, chưa triển khai, bị chặn bởi endpoint/gateway. Không sửa code ở bước này; gửi M.Châu review checklist và ưu tiên lỗi.
+```
+
+### Prompt 4.2 — Sửa lỗi hồi quy ưu tiên cao
+
+```text
+Dựa trên checklist đã được review, sửa các lỗi mức nghiêm trọng/cao thuộc phạm vi đã duyệt, ưu tiên lỗi làm hỏng luồng CRUD, mất dữ liệu, sai tham chiếu, điều hướng hoặc trạng thái thành công giả. Mỗi lỗi phải tái hiện được trước khi sửa và có bước xác minh sau sửa. Không thay đổi schema/kiến trúc nếu chưa được thống nhất.
+```
+
+### Prompt 4.3 — Hoàn tất chức năng backlog còn thiếu
+
+```text
+Kiểm tra các tiêu chí backlog đã duyệt nhưng còn thiếu trong code. Hoàn thiện các phần còn trong phạm vi PR 4, ưu tiên luồng cốt lõi: lưu bền vững, CRUD, tìm kiếm/lọc/phân trang, ghi chú và trạng thái đọc/yêu thích. Với endpoint/gateway chưa có, không giả lập; ghi rõ bị chặn và hoàn thiện trạng thái lỗi/giao diện giới hạn nếu phù hợp. Không thêm tính năng ngoài backlog.
+```
+
+### Prompt 4.4 — Kiểm thử hồi quy toàn ứng dụng
+
+```text
+Chạy bộ kiểm tra nhỏ nhất bao phủ các luồng MVP và hồi quy toàn ứng dụng: tạo/sửa/xóa/khôi phục dữ liệu, reload, tham chiếu, tìm kiếm/lọc/sắp xếp/phân trang, ghi chú, trạng thái, responsive, lỗi lưu/API và Knowledge Graph nếu gateway sẵn có. Ghi rõ lệnh/ca kiểm tra và kết quả thực tế. Không tuyên bố đã kiểm tra nếu chưa chạy.
+```
+
+### Prompt 4.5 — Rà soát bảo mật, tài liệu và demo
+
+```text
+Rà soát PR 4 để bảo đảm không có khóa/token/dữ liệu cá nhân trong mã hoặc tài liệu; đăng nhập demo và OTP được mô tả đúng giới hạn; AI đi qua gateway; đề xuất graph cần người dùng duyệt. Cập nhật README, CHANGELOG và kịch bản demo chỉ theo chức năng đã xác minh. Tạo danh sách lỗi/giới hạn còn lại và xin M.Châu review cuối.
+```
+
+### Prompt 4.6 — Review chéo và tiêu chí merge
+
+```text
+Review toàn bộ diff PR 4 cùng checklist nghiệm thu. Phân loại lỗi còn lại theo mức độ, xác nhận mỗi sửa đổi có kiểm thử phù hợp, không có thay đổi ngoài phạm vi và các giới hạn dịch vụ được công bố. Chỉ đề xuất merge khi không còn lỗi nghiêm trọng/cao chưa xử lý; nếu còn, nêu rõ việc cần hoàn tất trong chính PR 4.
+```
+
+### Thao tác Git và PR 4
+
+Chỉ sau khi PR 3 đã squash-merge. **N.Duyên tạo nhánh mới từ nhánh chính mới nhất:**
+
+```powershell
+git status
+git fetch origin
+git switch <main-branch>
+git pull --ff-only origin <main-branch>
+git switch -c feature/pkb-pr4-finalization
+```
+
+Sau khi hoàn tất prompt 4.1–4.6 và M.Châu review:
+
+```powershell
+git diff
+git diff --check
+git add <các-tệp-sửa-lỗi-hoàn-thiện-và-tài-liệu-thuộc-PR4>
+git diff --cached
+git commit -m "fix: finalize MVP and resolve acceptance issues"
+git push -u origin feature/pkb-pr4-finalization
+```
+
+Tạo PR cuối:
+
+- Title: `PR 4: Finalize MVP and resolve acceptance issues`
+- Reviewer: M.Châu.
+- Mô tả: checklist đạt/chưa đạt/bị chặn, lỗi đã sửa, kiểm thử và giới hạn còn lại.
+- N.Duyên điều phối review và xác nhận tiêu chí; M.Châu review giao diện/luồng. Sau khi đạt, chọn **Squash and merge**. Không tạo PR thứ năm.
+
+## Checklist Git chung cho người review/nhận PR
+
+1. Xác nhận PR có base là nhánh chính mới nhất và compare đúng feature branch.
+2. Đọc mô tả, Files changed, kiểm tra secrets và xác nhận phạm vi đúng PR.
+3. Chạy hoặc xác minh tiêu chí nghiệm thu tương ứng.
+4. Nếu cần sửa, yêu cầu tác giả cập nhật cùng nhánh/PR.
+5. Chỉ squash-merge khi đạt; sau merge, người tiếp theo fetch/pull nhánh chính trước khi tạo branch mới.
+
+Lịch tổng: **PR 1 M.Châu (Ngày 1–2) → PR 2 N.Duyên (Ngày 3–4) → PR 3 M.Châu (Ngày 5–6) → PR 4 N.Duyên, nhóm trưởng (Ngày 7/chốt ứng dụng).** Nhánh chính nhận đúng bốn commit tích hợp từ bốn lần squash-merge.
